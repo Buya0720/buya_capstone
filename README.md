@@ -19,6 +19,21 @@ capstone project
 # Architecture
 ![Analytical data model](./docs/Images/Architecture.png)
 
+## How to install python libraries
+```
+  pip install -r requirements.txt
+```
+
+## Create python virtual env
+```
+  python -m venv .venv
+```
+
+## Activate your environment
+```
+  source .venv/bin/activate
+```
+
 ## Project Organization
 
 ```

@@ -1,7 +1,8 @@
 	-- Customers Table
-
+DROP TABLE IF EXISTS customers;
 CREATE TABLE customers (
-    customer_id VARCHAR(20) PRIMARY KEY,
+	customer_id SERIAL PRIMARY KEY,
+    customer_code VARCHAR(20),
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     id_number BIGINT,
@@ -23,7 +24,7 @@ CREATE TABLE customers (
 );
 
 -- Accounts Table
-DROP table accounts;
+DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
     account_id VARCHAR(10) PRIMARY KEY,
     customer_id VARCHAR(10),
@@ -41,7 +42,7 @@ CREATE TABLE accounts (
 );
 
 -- Transactions Table
--- drop table transactions;
+DROP TABLE IF EXISTS transactions;
 
 CREATE TABLE transactions (
     transaction_id VARCHAR(10) PRIMARY KEY,
@@ -63,12 +64,30 @@ CREATE TABLE transactions (
 );
 
 -- Time Table
+DROP TABLE IF EXISTS time;
 CREATE TABLE time (
     date_key INT PRIMARY KEY,
     full_date DATE,
+    day_name VARCHAR(20),
     day_of_week VARCHAR(10),
-    month VARCHAR(20),
-    quarter VARCHAR(10),
+    day_of_month VARCHAR(20),
+    day_of_year VARCHAR(10),
+    week_of_year VARCHAR(10),
+    month INT,
+    month_name VARCHAR(20),
+    month_year VARCHAR(20),
+    quarter INT,
     year INT,
+    fiscal_year INT,
+    fiscal_quarter INT,
+    fiscal_period INT,
+    is_weekend BOOLEAN,
+    is_holiday BOOLEAN,
+    holiday_name VARCHAR(50),
+    is_business_day BOOLEAN,
+    is_month_end BOOLEAN,
+    is_quarter_end BOOLEAN,
+    is_year_end BOOLEAN,
+    is_fiscal_year_end BOOLEAN,
     holiday_flag BOOLEAN
 );

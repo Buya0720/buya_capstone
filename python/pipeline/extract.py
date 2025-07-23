@@ -1,23 +1,24 @@
 import pandas as pd
 from sqlalchemy import create_engine
+import psycopg2
 
 # Database connection string
-db_user = "your_username"
-db_password = "your_password"
+db_user = "user"
+db_password = "password"
 db_host = "localhost"
 db_port = "5432"
-db_name = "retail_banking"
+db_name = "bootcamp_db"
 db_url = f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 # Create engine
 engine = create_engine(db_url)
 
-# CSV paths
+# CSV paths - dictionary
 csv_files = {
-    "customers": "customers.csv",
-    "accounts": "accounts.csv",
-    "transactions": "transactions.csv",
-    "branches": "branches.csv"
+    "customers": "datasets/customers.csv",
+#     "accounts": "datasets/accounts.csv",
+#     "transactions": "datasets/transactions.csv",
+#     "time": "datasetss/time.csv"
 }
 
 # Load and insert

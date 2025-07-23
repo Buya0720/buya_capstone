@@ -11,6 +11,14 @@ capstone project
 
 ![Data Model](./docs/Images/Data_Model.png)
 
+
+# Analytical Data Model
+![Analytical data model](./docs/Images/Data_Model.png)
+
+
+# Architecture
+![Analytical data model](./docs/Images/Architecture.png)
+
 ## Project Organization
 
 ```

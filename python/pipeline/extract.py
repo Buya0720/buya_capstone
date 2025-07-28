@@ -16,9 +16,9 @@ engine = create_engine(db_url)
 # CSV paths - dictionary
 csv_files = {
     "customers": "datasets/customers.csv",
-#     "accounts": "datasets/accounts.csv",
-#     "transactions": "datasets/transactions.csv",
-#     "time": "datasetss/time.csv"
+    "accounts": "datasets/accounts.csv",
+    "transactions": "datasets/transactions.csv",
+    # "time": "datasets/time.csv"
 }
 
 # Load and insert

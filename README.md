@@ -26,7 +26,7 @@ capstone project
 
 ## Create python virtual env
 ```
-  python -m venv .venv
+  python3 -m venv .venv
 ```
 
 ## Activate your environment

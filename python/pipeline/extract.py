@@ -15,10 +15,11 @@ engine = create_engine(db_url)
 
 # CSV paths - dictionary
 csv_files = {
-    "customers": "/Users/buyabatu/Projects/capstone-data-engineering/datasets/customers.csv",
-    # "accounts": "../../datasets/customers.csv",
-    # "transactions": "../../datasets/customers.csv",
-    # "time": "datasets/time.csv"
+    # "customers": "datasets/customers.csv",
+    # "accounts": "datasets/accounts.csv",
+    # "transactions": "datasets/transactions.csv",
+    # "time": "datasets/time.csv",
+    "airbnb_sydney_listings": "datasets/sydney_airbnb_listings.csv",    
 }
 
 # Load and insert

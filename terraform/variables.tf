@@ -87,3 +87,8 @@ variable "databases" {
   }))
   default = []
 }
+
+variable create_database {
+  description = "Flag to create a database"
+  type        = bool
+}

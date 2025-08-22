@@ -13,18 +13,19 @@ provider "aws" {
 }
 
 module "ec2-datatabase" {
-  source          = "./modules/ec2_instance"
-  project         = var.project
-  environment     = var.environment
-  instance_type   = var.instance_type
-  role_name       = "ec2-database"
-  subnet_id       = module.network.public_subnet_ids[0]
-  vpc_id          = module.network.vpc_id
-  security_group_ids = [aws_security_group.sg_postgres.id, aws_security_group.sg.id]
+  count               = var.create_database ? 1 : 0
+  source              = "./modules/ec2_instance"
+  project             = var.project
+  environment         = var.environment
+  instance_type       = var.instance_type
+  role_name           = "ec2-database"
+  subnet_id           = module.network.public_subnet_ids[0]
+  vpc_id              = module.network.vpc_id
+  security_group_ids  = [aws_security_group.sg_postgres.id, aws_security_group.sg.id]
   airflow_logs_bucket = ""
-  airflow_admin_user = ""
-  airflow_admin_pass = ""
-  user_data = <<-EOF
+  airflow_admin_user  = ""
+  airflow_admin_pass  = ""
+  user_data           = <<-EOF
     #!/usr/bin/env bash
     set -euxo pipefail
 

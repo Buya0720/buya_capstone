@@ -30,6 +30,12 @@ variable airflow_logs_bucket {
   default     = ""
 }
 
+variable airflow_dags_bucket {
+  description = "The S3 bucket for Airflow DAGs"
+  type        = string
+  default     = ""
+}
+
 variable airflow_admin_user {
   description = "The Airflow admin user name"
   type        = string

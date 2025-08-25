@@ -71,6 +71,7 @@ module "ec2-airflow" {
   airflow_logs_bucket = module.data_bucket.bucket_name
   airflow_admin_user = var.airflow_admin_user
   airflow_admin_pass = var.airflow_admin_pass
+  airflow_dags_bucket = module.code_bucket.bucket_name
 
   private_ip      = var.ip_addresses[1]
 

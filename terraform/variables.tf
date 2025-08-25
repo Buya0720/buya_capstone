@@ -92,3 +92,13 @@ variable create_database {
   description = "Flag to create a database"
   type        = bool
 }
+
+variable create_airflow {
+  description = "Flag to create an airflow instance"
+  type        = bool
+}
+
+variable "ip_addresses" {
+  description = "List of IP addresses to allowed access to the Airflow web server"
+  type        = list(string)
+}

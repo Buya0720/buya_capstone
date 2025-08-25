@@ -24,6 +24,11 @@ python_objects = {
 
 databases = [
     { name = "airflow_db",   user = "airflow",   password = "airflow" },
-    { name = "bootcamp_db",  user = "user", password = "password" },
+    { name = "bootcamp_db",  user = "bootcamp_user", password = "bootcamp_password" },
     { name = "metabase_db",  user = "metabase_user", password = "metabase_password" }
+]
+
+ip_addresses = [
+  "10.20.1.50",
+  "10.20.1.51"
 ]

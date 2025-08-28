@@ -1,12 +1,12 @@
-dbt_demo:
+dbt_demo2:
   outputs:
     dev: # these names can be anything you like
       dbname: bootcamp_db
-      host: localhost
-      pass: password
+      host: 10.20.1.50
+      pass: bootcamp_password
       port: 5432
       schema: public
       threads: 5
       type: postgres
-      user: user
+      user: bootcamp_user
   target: dev

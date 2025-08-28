@@ -1,0 +1,44 @@
+
+# description of the staging schema for dbt_demo project
+version: 2
+models:
+
+  - name: stg_customers # name of the staging table
+    description: "Staging model for customer data"
+    columns:
+      - name: customer_code
+        description: "Unique identifier for each customer"
+        data_tests:
+          - not_null
+      - name: full_name
+        description: "Full name of the customer"
+      - name: email
+        description: "Customer's email address"
+      - name: created_at
+        description: "Timestamp when the customer was created"
+
+  - name: stg_transaction
+    description: "Staging model for customer data"
+    columns:
+      - name: transaction_id
+        description: "Unique identifier for each transaction"
+        data_tests:
+          - unique
+          - not_null
+      - name: account_id
+        description: "Account associated with the transaction"
+
+  - name: stg_accounts 
+    description: "Staging model for account data"
+    columns:
+      - name: account_id
+        description: "Unique identifier for each account"
+        data_tests:
+          - unique
+          - not_null
+      - name: account_type
+        description: "Type of the account (e.g., savings, checking)"
+      - name: balance
+        description: "Current balance of the account"
+      - name: customer_id
+        description: "Unique identifier for the customer associated with the account"

@@ -54,8 +54,5 @@ COPY . /usr/app/dbt/
 
 WORKDIR /usr/app/dbt/
 
-#installing packages
-# ENTRYPOINT ["sh", "-c", "dbt deps && dbt run"]
-
 ENTRYPOINT ["dbt"]
  

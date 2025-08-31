@@ -12,3 +12,8 @@ resource "aws_s3_object" "clean_directory" {
   bucket  = module.data_bucket.bucket_name
   key     = "clean/"
 }
+
+resource "aws_s3_object" "clean_directory" {
+  bucket  = module.data_bucket.bucket_name
+  key     = "raw/"
+}

@@ -107,8 +107,3 @@ variable glue_db_name {
   description = "The name of the Glue database"
   type        = string
 }
-
-variable clean_s3_path {
-  description = "The S3 prefix for clean data"
-  type        = string
-}

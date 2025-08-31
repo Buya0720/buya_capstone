@@ -58,7 +58,9 @@ def _export_one_table(table: str, ds: str):
 )
 def export_postgres_to_s3_raw_parquet():
     @task
-    def export_table(table: str, ds: str = "{{ ds }}"):
+    def export_table(table: str, ds: str | None = None):  # Changed this line
+        if ds is None:
+            raise ValueError("execution date (ds) is required")
         _export_one_table(table, ds)
 
     # dynamic mapping over the tables

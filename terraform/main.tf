@@ -200,7 +200,7 @@ module "ec2-airflow" {
     UNIT
 
     # Wait for database to be ready
-    sleep 10`
+    sleep 10
 
     systemctl daemon-reload
     systemctl enable airflow-webserver airflow-scheduler airflow-worker

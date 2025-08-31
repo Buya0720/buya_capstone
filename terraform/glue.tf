@@ -7,10 +7,8 @@ resource "aws_glue_catalog_database" "clean" {
     Env = "dev"
   }
 }
- 
 
- resource "aws_s3_object" "clean_directory" {
-    bucket = module.data_bucket.bucket_name
-    key = "/clean"
-    content = ""
- }
+resource "aws_s3_object" "clean_directory" {
+  bucket  = module.data_bucket.bucket_name
+  key     = "clean/"
+}

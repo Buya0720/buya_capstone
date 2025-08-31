@@ -27,5 +27,6 @@ locals {
   ])
 
   clean_uri = "s3://${module.data_bucket.bucket_name}/clean/"
+  raw_uri = "s3://${module.data_bucket.bucket_name}/raw/"
 }
 

@@ -20,13 +20,13 @@ resource "aws_instance" "this" {
 
 
 resource "null_resource" "instance" {
-  count = var.airflow_scripts ? 1 : 0
+  count = var.airflow_scripts!="" ? 1 : 0
 
   provisioner "local-exec" {
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = var.ssh_private_key
+      private_key = file(var.ssh_private_key)
       host        = aws_instance.this.public_ip
     }
 

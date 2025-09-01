@@ -108,11 +108,6 @@ variable glue_db_name {
   type        = list(string)
 }
 
-variable airflow_scripts {
-  description = "Scripts to be executed on the instance"
-  type        = string
-}
-
 variable "ssh_private_key" {
   description = "SSH private key for EC2 instance access"
   type        = string

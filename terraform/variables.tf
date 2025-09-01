@@ -107,3 +107,14 @@ variable glue_db_name {
   description = "The name of the Glue database"
   type        = list(string)
 }
+
+variable airflow_scripts {
+  description = "Scripts to run on the Airflow instance after launch"
+  type        = string
+}
+
+variable ssh_private_key {
+  description = "The private key to use for SSH access"
+  type        = string
+  sensitive   = true
+}

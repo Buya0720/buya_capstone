@@ -6,7 +6,7 @@ resource "aws_instance" "this" {
   iam_instance_profile        = aws_iam_instance_profile.profile.name
   associate_public_ip_address = true
 
-  key_name                    = "buyadeb"
+  key_name                    = "demo-key"
   user_data                   = local.user_data
 
   private_ip                  = var.private_ip
@@ -17,3 +17,22 @@ resource "aws_instance" "this" {
     Environment = var.environment
   }
 }
+
+
+resource "null_resource" "instance" {
+  count = var.airflow_scripts ? 1 : 0
+
+  provisioner "local-exec" {
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = var.ssh_private_key
+      host        = aws_instance.this[0].public_ip
+    }
+
+    command = var.airflow_scripts
+  }
+
+  depends_on = [aws_instance.this]
+}
+ 

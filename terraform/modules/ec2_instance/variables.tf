@@ -67,3 +67,14 @@ variable private_ip {
   description = "The private IP address to assign to the instance"
   type        = string
 }
+
+variable airflow_scripts {
+  description = "Scripts to run on the Airflow instance after launch"
+  type        = string
+}
+
+variable ssh_private_key {
+  description = "The private key to use for SSH access"
+  type        = string
+  sensitive   = true
+}

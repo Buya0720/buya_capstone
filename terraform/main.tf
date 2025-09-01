@@ -13,20 +13,24 @@ provider "aws" {
 }
 
 module "ec2-datatabase" {
-  count               = var.create_database ? 1 : 0
-  source              = "./modules/ec2_instance"
-  project             = var.project
-  environment         = var.environment
-  instance_type       = var.instance_type
-  role_name           = "ec2-database"
-  subnet_id           = module.network.public_subnet_ids[0]
-  vpc_id              = module.network.vpc_id
-  security_group_ids  = [aws_security_group.sg_postgres.id, aws_security_group.sg.id]
-  airflow_logs_bucket = ""
-  airflow_admin_user  = ""
-  airflow_admin_pass  = ""
+  count           = var.create_database ? 1 : 0
+  source          = "./modules/ec2_instance"
+  project         = var.project
+  environment     = var.environment
+  instance_type   = var.instance_type
+  role_name       = "ec2-database"
+  subnet_id       = module.network.public_subnet_ids[0]
+  vpc_id          = module.network.vpc_id
+  security_group_ids = [aws_security_group.sg_postgres.id, aws_security_group.sg.id]
 
-  private_ip          = var.ip_addresses[0]
+  airflow_logs_bucket = ""
+  airflow_admin_user = ""
+  airflow_admin_pass = ""
+  airflow_dags_bucket = ""
+  airflow_scripts  = ""
+  ssh_private_key = var.ssh_private_key
+
+  private_ip      = var.ip_addresses[0]
 
   user_data           = <<-EOF
     #!/usr/bin/env bash
@@ -68,10 +72,13 @@ module "ec2-airflow" {
   subnet_id       = module.network.public_subnet_ids[0]
   vpc_id          = module.network.vpc_id
   security_group_ids = [aws_security_group.sg_airflow.id, aws_security_group.sg.id]
+
   airflow_logs_bucket = module.data_bucket.bucket_name
   airflow_admin_user = var.airflow_admin_user
   airflow_admin_pass = var.airflow_admin_pass
   airflow_dags_bucket = module.code_bucket.bucket_name
+  airflow_scripts  = "sudo -u airflow aws s3 sync s3://${module.code_bucket.bucket_name}/dags/ /home/airflow/airflow/dags --delete"
+  ssh_private_key = var.ssh_private_key
 
   private_ip      = var.ip_addresses[1]
 

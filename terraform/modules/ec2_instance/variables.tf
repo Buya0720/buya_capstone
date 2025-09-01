@@ -69,12 +69,12 @@ variable private_ip {
 }
 
 variable airflow_scripts {
-  description = "Scripts to run on the Airflow instance after launch"
+  description = "Scripts to be executed on the instance"
   type        = string
 }
 
-variable ssh_private_key {
-  description = "The private key to use for SSH access"
+variable "ssh_private_key" {
+  description = "SSH private key for EC2 instance access"
   type        = string
-  sensitive   = true
+  sensitive   = true  # Marks as sensitive to hide in logs
 }

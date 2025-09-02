@@ -6,10 +6,8 @@
 
 capstone project
 
-## Data Model
-
-
-![Data Model](./docs/Images/Data_Model.png)
+## Overall Infrastrucutre
+![Data Model](./docs/Images/Infrastrucutre.png)
 
 
 # Analytical Data Model

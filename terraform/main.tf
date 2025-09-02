@@ -15,6 +15,11 @@ provider "aws" {
 module "ec2-datatabase" {
   count           = var.create_database ? 1 : 0
   source          = "./modules/ec2_instance"
+  depends_on      = [
+                      aws_s3_object.csv,
+                      aws_s3_object.python,
+                      module.network
+                    ]
   project         = var.project
   environment     = var.environment
   instance_type   = var.instance_type
@@ -27,12 +32,14 @@ module "ec2-datatabase" {
   airflow_admin_user = ""
   airflow_admin_pass = ""
   airflow_dags_bucket = ""
-  airflow_scripts  = ""
+  airflow_scripts  = "echo 'No scripts to run'"
+  enable_airflow_seed = false
+
   ssh_private_key = var.ssh_private_key
 
   private_ip      = var.ip_addresses[0]
 
-  user_data           = <<-EOF
+  user_data = <<-EOF
     #!/usr/bin/env bash
     set -euxo pipefail
 
@@ -62,6 +69,8 @@ module "ec2-airflow" {
   count           = var.create_airflow ? 1 : 0
   source          = "./modules/ec2_instance"
   depends_on      = [
+                      aws_s3_object.csv,
+                      aws_s3_object.python,
                       module.ec2-datatabase,
                       module.network
                     ]
@@ -72,12 +81,13 @@ module "ec2-airflow" {
   subnet_id       = module.network.public_subnet_ids[0]
   vpc_id          = module.network.vpc_id
   security_group_ids = [aws_security_group.sg_airflow.id, aws_security_group.sg.id]
-
   airflow_logs_bucket = module.data_bucket.bucket_name
   airflow_admin_user = var.airflow_admin_user
   airflow_admin_pass = var.airflow_admin_pass
   airflow_dags_bucket = module.code_bucket.bucket_name
   airflow_scripts  = "sudo -u airflow aws s3 sync s3://${module.code_bucket.bucket_name}/dags/ /home/airflow/airflow/dags --delete"
+  enable_airflow_seed = var.deploy_dags
+
   ssh_private_key = var.ssh_private_key
 
   private_ip      = var.ip_addresses[1]
@@ -93,12 +103,12 @@ module "ec2-airflow" {
     id -u airflow &>/dev/null || useradd -m -s /bin/bash airflow
     su - airflow -c "python3.11 -m venv ~/venv && source ~/venv/bin/activate && pip install --upgrade pip"
 
-    # First install base dependencies including cryptography
+     # First install base dependencies including cryptography
     su - airflow -c "source ~/venv/bin/activate && pip install \
       'cryptography' \
       'SQLAlchemy>=1.4.0,<2.0.0' \
       'psycopg2-binary>=2.9.0' \
-      'pyarrow>=21.0.0' \
+      'pyarrow>=8.0.0' \
       'alembic>=1.6.3'"
 
     # Install Airflow and dependencies

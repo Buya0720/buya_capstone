@@ -4,7 +4,8 @@
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-capstone project
+Welcome to my capstone project: Building a Lakehouse with Bank Transactions Data
+In this project, we leveraged AWS, Terraform, and Docker to set up the infrastructure, ultimately creating a data lake and an ELT pipeline using dbt. We further implemented Airflow to enable pipeline orchestration and automation.
 
 ## Overall Infrastrucutre
 ![Data Model](./docs/Images/Infrastructure.png)

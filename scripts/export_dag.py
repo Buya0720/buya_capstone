@@ -8,7 +8,7 @@ import pyarrow.parquet as pq
 from airflow.decorators import dag, task
 from airflow.models import Variable
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.decorators import get_current_context
+from airflow.operators.python import get_current_context
 
 # --- Config (edit or set as Airflow Variables) ---
 POSTGRES_CONN_ID = Variable.get("PG_CONN_ID", default_var="postgres_default")
@@ -35,8 +35,8 @@ def _export_one_table(table: str, ds: str):
 
             if table == "customers":
                 df['id_number'] = df['id_number'].astype(str)
-                df['postal_code'] = df['postal_code'].astype(str)
                 df['phone_number'] = df['phone_number'].astype(str)
+                df['postal_code'] = df['postal_code'].astype(str)
                 df['credit_score'] = df['credit_score'].astype(str)
 
                 schema_pa = pa.schema([

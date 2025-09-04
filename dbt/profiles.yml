@@ -12,7 +12,7 @@ dbt_demo:
   target: dev
 
 
-lake:
+dbt:
   target: dev
   outputs:
     dev:

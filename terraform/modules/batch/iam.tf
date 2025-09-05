@@ -16,6 +16,12 @@ resource "aws_iam_role_policy_attachment" "task_exec_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "batch_attach_glue" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess"
+}
+ 
+
 # Service role for Batch
 resource "aws_iam_role" "batch_service" {
   name = "${local.name}-service-role"

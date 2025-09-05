@@ -15,10 +15,18 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy_attachment" "batch_attach_glue" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess"
+}
+ 
+
 resource "aws_iam_instance_profile" "profile" {
   name = "${var.role_name}-profile"
   role = aws_iam_role.role.name
 }
+
+
 
 resource "aws_iam_role_policy" "s3_logs_rw" {
   name   = "airflow-s3-logs-rw"

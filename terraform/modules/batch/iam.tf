@@ -26,6 +26,11 @@ resource "aws_iam_role_policy_attachment" "batch_attach_glue" {
   policy_arn = "arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "batch_attach_glue" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
 resource "aws_iam_role_policy_attachment" "batch_attach_athena" {
   role       = aws_iam_role.task_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"

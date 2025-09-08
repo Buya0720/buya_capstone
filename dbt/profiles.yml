@@ -22,5 +22,5 @@ dbt_lake:
       database: AwsDataCatalog
       schema: raw
       s3_staging_dir: s3://deb-w6d2/
-      s3_data_dir: s3://data-lae-dev-buya/raw/
+      s3_data_dir: s3://data-lake-dev-buya/raw/
       threads: 5

@@ -37,10 +37,19 @@ models:
   dbt_lake:
     raw:
       +materialized: table
-      +schema: raw 
+      +schema: raw
       +tags: raw
-  clean:
+    clean:
       +materialized: table
-      +schema: clean 
+      +schema: clean
       +tags: clean
+    warehouse:
+      +materialized: table
+      +schema: warehouse
+      +tags: warehouse
+    mart:
+      +materialized: table
+      +schema: mart
+      +tags: mart
+ 
 

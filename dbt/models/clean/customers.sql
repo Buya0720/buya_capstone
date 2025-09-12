@@ -3,6 +3,7 @@
 ) }}
 
 
+--this runs first
 with dedup_customer as (
     -- This CTE is intended to deduplicate customer records based on customer_code
     SELECT
@@ -53,4 +54,4 @@ SELECT
     credit_score,
     primary_bank,
     primary_branch
-FROM raw_customers
+FROM customers

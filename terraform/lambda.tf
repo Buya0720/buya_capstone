@@ -43,6 +43,6 @@ resource "aws_lambda_function" "api_reader" {
   s3_key           = aws_s3_object.lambda_zip.key
 
   timeout          = 15
-
+  
 }
  

@@ -37,12 +37,14 @@ resource "aws_lambda_function" "api_reader" {
   function_name    = "${var.project}-api-reader"
   role             = aws_iam_role.lambda_exec.arn
   handler          = "youtube-api.handler"
-  runtime          = "python3.8"
-
+  runtime          = "python3.12"
   s3_bucket        = module.code_bucket.bucket_name
   s3_key           = aws_s3_object.lambda_zip.key
-
   timeout          = 15
-
+  environment {
+    variables = {
+    }
+  }
 }
+ 
  

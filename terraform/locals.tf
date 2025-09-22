@@ -1,7 +1,6 @@
 
 locals {
   name = "${var.project}-${var.environment}"
-  yt_api_key = data.aws_secretsmanager_secret_version.yt_latest.secret_string
 
   db_bootstrap_sql = join("\n\n", [
     for db in var.databases : <<-SQL
@@ -32,4 +31,3 @@ locals {
   warehouse_uri = "s3://${module.data_bucket.bucket_name}/warehouse/"
   mart_uri = "s3://${module.data_bucket.bucket_name}/mart/"
 }
-

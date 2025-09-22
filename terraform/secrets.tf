@@ -1,4 +1,4 @@
-resource "aws_secretsmanager_secret" "youtube_secret" {
+resource "aws_secretsmanager_secret" "youtube_secret2" {
   name        = "youtube_secret2"
   description = "YouTube Data API v3 key for ${var.project}"
 }

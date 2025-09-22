@@ -1,163 +1,182 @@
-# youtube_fetch.py
-# Standard-library YouTube Data API v3 client for stats + comments
-# Usage (CLI):
-#   export YT_API_KEY=AIzaSyAjg3EmK3RIozk7z0moSwlSOIFURncGEmE
-#   python youtube_fetch.py https://www.youtube.com/watch?v=dQw4w9WgXcQ --comments 10
-
-import os, json, sys, time
+import os, json, csv, io, time
 from urllib.parse import urlencode, urlparse, parse_qs
 from urllib.request import Request, urlopen
 
+import boto3
+
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3"
 
-# ---------- low-level HTTP ----------
-
 def http_get_json(path: str, params: dict, timeout: int = 12) -> dict:
-    """GET {YOUTUBE_API}/{path}?params and return parsed JSON; raise on non-200."""
     url = f"{YOUTUBE_API}/{path}?{urlencode(params)}"
-    req = Request(url, headers={"User-Agent": "yt-fetch/1.0"})
+    req = Request(url, headers={"User-Agent": "yt-lambda/1.0"})
     with urlopen(req, timeout=timeout) as r:
         body = r.read().decode("utf-8")
         if r.status != 200:
             raise RuntimeError(f"HTTP {r.status}: {body[:200]}")
         return json.loads(body)
 
-# ---------- helpers ----------
+def get_secret_value(secret_name: str) -> str:
+    sm = boto3.client("secretsmanager")
+    resp = sm.get_secret_value(SecretId=secret_name)
+    secret = resp.get("SecretString", "")
+    # accept raw string or {"api_key":"..."}
+    try:
+        j = json.loads(secret)
+        return j.get("api_key", secret)
+    except Exception:
+        return secret
 
-def extract_video_id(video: str) -> str:
-    """
-    Accept a video ID or a YouTube URL and return the video ID.
-    Supports: https://www.youtube.com/watch?v=ID, youtu.be/ID, shorts/ID.
-    """
-    # Already looks like an ID (11 chars typical, but be permissive)
-    if "/" not in video and "?" not in video and "&" not in video:
-        return video
-
-    u = urlparse(video)
-    if "youtu.be" in u.netloc:
-        return u.path.strip("/")
-
-    if "youtube.com" in u.netloc:
-        # watch?v=, shorts/, embed/
-        qs = parse_qs(u.query)
-        if "v" in qs:
-            return qs["v"][0]
-        parts = [p for p in u.path.split("/") if p]
-        if parts and parts[0] in {"shorts", "embed"} and len(parts) > 1:
-            return parts[1]
-    raise ValueError(f"Could not extract video ID from: {video}")
-
-# ---------- public API ----------
-
-def get_video_stats(video: str, api_key: str | None = None) -> dict:
-    """
-    Return basic stats for a video: title, channel, publishedAt, viewCount, likeCount, commentCount.
-    """
-    api_key = api_key or os.getenv("YT_API_KEY")
-    if not api_key:
-        raise RuntimeError("Missing API key. Set YT_API_KEY or pass api_key=...")
-
-    vid = extract_video_id(video)
+def search_videos(api_key: str, query: str, max_results: int = 5) -> list[dict]:
     data = http_get_json(
-        "videos",
+        "search",
         {
-            "part": "snippet,statistics",
-            "id": vid,
+            "part": "snippet",
+            "q": query,
+            "type": "video",
+            "maxResults": max(1, min(50, max_results)),
             "key": api_key,
         },
     )
+    vids = []
+    for it in data.get("items", []):
+        try:
+            # Add defensive programming
+            if "id" not in it or "videoId" not in it["id"]:
+                print(f"Skipping item without videoId: {json.dumps(it)}")
+                continue
 
-    items = data.get("items", [])
-    if not items:
-        raise ValueError(f"No video found for id={vid}")
+            vids.append({
+                "video_id": it["id"]["videoId"],
+                "title": it.get("snippet", {}).get("title", ""),
+                "channelTitle": it.get("snippet", {}).get("channelTitle", ""),
+                "publishedAt": it.get("snippet", {}).get("publishedAt", ""),
+            })
+        except Exception as e:
+            print(f"Error processing video item: {str(e)}")
+            print(f"Problem item: {json.dumps(it)}")
+            continue
 
-    item = items[0]
-    snippet = item.get("snippet", {})
-    stats = item.get("statistics", {})
+    return vids
 
-    # likeCount may be absent if disabled; handle gracefully
-    return {
-        "video_id": vid,
-        "title": snippet.get("title"),
-        "channelTitle": snippet.get("channelTitle"),
-        "publishedAt": snippet.get("publishedAt"),
-        "viewCount": int(stats.get("viewCount", 0)),
-        "likeCount": int(stats.get("likeCount", 0)) if "likeCount" in stats else None,
-        "commentCount": int(stats.get("commentCount", 0)) if "commentCount" in stats else None,
-    }
+def get_video_stats(api_key: str, video_ids: list[str]) -> dict[str, dict]:
+    if not video_ids:
+        return {}
+    data = http_get_json(
+        "videos",
+        {
+            "part": "statistics",
+            "id": ",".join(video_ids),
+            "key": api_key,
+        },
+    )
+    out = {}
+    for it in data.get("items", []):
+        stats = it.get("statistics", {})
+        out[it["id"]] = {
+            "viewCount": int(stats.get("viewCount", 0)),
+            "likeCount": int(stats.get("likeCount")) if "likeCount" in stats else None,
+            "commentCount": int(stats.get("commentCount")) if "commentCount" in stats else None,
+        }
+    return out
 
-def get_top_comments(
-    video: str,
-    api_key: str | None = None,
-    max_comments: int = 20,
-    order: str = "relevance",  # "relevance" or "time"
-    throttle_sec: float = 0.0,  # be nice if looping pages
-) -> list[dict]:
-    """
-    Return top-level comments up to max_comments.
-    Each item: {author, text, likeCount, publishedAt, updatedAt}
-    """
-    api_key = api_key or os.getenv("YT_API_KEY")
-    if not api_key:
-        raise RuntimeError("Missing API key. Set YT_API_KEY or pass api_key=...")
-
-    vid = extract_video_id(video)
-    results: list[dict] = []
-    page_token = None
-
-    while len(results) < max_comments:
-        page_size = min(100, max_comments - len(results))
+def get_top_comments(api_key: str, video_id: str, max_comments: int = 10) -> list[dict]:
+    results, token = [], None
+    remaining = max(0, max_comments)
+    while remaining > 0:
+        page_size = min(100, remaining)
         params = {
             "part": "snippet",
-            "videoId": vid,
+            "videoId": video_id,
             "maxResults": page_size,
-            "order": order,
+            "order": "relevance",
             "key": api_key,
         }
-        if page_token:
-            params["pageToken"] = page_token
-
+        if token: params["pageToken"] = token
         data = http_get_json("commentThreads", params)
         for it in data.get("items", []):
             sn = it["snippet"]["topLevelComment"]["snippet"]
-            results.append(
-                {
-                    "author": sn.get("authorDisplayName"),
-                    "text": sn.get("textDisplay"),  # HTML; use textOriginal for plain text
-                    "likeCount": int(sn.get("likeCount", 0)),
-                    "publishedAt": sn.get("publishedAt"),
-                    "updatedAt": sn.get("updatedAt"),
-                }
-            )
-            if len(results) >= max_comments:
+            results.append({
+                "video_id": video_id,
+                "author": sn.get("authorDisplayName"),
+                "text": sn.get("textOriginal"),
+                "likeCount": int(sn.get("likeCount", 0)),
+                "publishedAt": sn.get("publishedAt"),
+            })
+            remaining -= 1
+            if remaining <= 0:
                 break
-
-        page_token = data.get("nextPageToken")
-        if not page_token:
+        token = data.get("nextPageToken")
+        if not token:
             break
-        if throttle_sec > 0:
-            time.sleep(throttle_sec)
-
+        time.sleep(0.1)
     return results
 
-def get_video_with_comments(video: str, max_comments: int = 10, api_key: str | None = None) -> dict:
-    """
-    Convenience wrapper: returns stats + top comments in one dict.
-    """
-    stats = get_video_stats(video, api_key=api_key)
-    comments = get_top_comments(video, api_key=api_key, max_comments=max_comments)
-    return {"stats": stats, "comments": comments}
+def put_s3_json(bucket: str, key: str, obj: dict):
+    s3 = boto3.client("s3")
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=json.dumps(obj, ensure_ascii=False, indent=2).encode("utf-8"),
+        ContentType="application/json; charset=utf-8",
+    )
 
-# ---------- CLI demo ----------
+def put_s3_csv(bucket: str, key: str, rows: list[dict]):
+    if not rows:
+        rows = []
+    fieldnames = sorted({k for r in rows for k in r.keys()}) if rows else []
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=fieldnames)
+    if fieldnames:
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+    s3 = boto3.client("s3")
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=buf.getvalue().encode("utf-8"),
+        ContentType="text/csv; charset=utf-8",
+    )
 
-if __name__ == "__main__":
-    import argparse
+def handler(event, context):
+    secret_name   = os.environ["SECRET_NAME"]
+    bucket        = os.environ["OUTPUT_BUCKET"]
+    prefix        = os.environ.get("OUTPUT_PREFIX", "youtube/output").rstrip("/")
+    query         = os.environ.get("YT_QUERY", "data engineering")
+    max_videos    = int(os.environ.get("MAX_VIDEOS", "5"))
+    max_comments  = int(os.environ.get("MAX_COMMENTS", "10"))
 
-    p = argparse.ArgumentParser(description="Fetch YouTube stats and comments")
-    p.add_argument("video", help="YouTube video ID or URL")
-    p.add_argument("--comments", type=int, default=5, help="How many top-level comments to fetch")
-    p.add_argument("--order", default="relevance", choices=["relevance", "time"])
-    args = p.parse_args()
+    api_key = get_secret_value(secret_name)
+    if not api_key:
+        return {"statusCode": 400, "body": "Missing API key in Secrets Manager"}
 
-    out = get_video_with_comments(args.video, max_comments=args.comments)
-    print(json.dumps(out, indent=2))
+    # Search videos
+    videos = search_videos(api_key, query, max_videos)
+    stats  = get_video_stats(api_key, [v["video_id"] for v in videos])
+
+    # Attach stats and collect comments
+    all_comments = []
+    for v in videos:
+        s = stats.get(v["video_id"], {})
+        v.update(s)
+        if max_comments > 0:
+            all_comments.extend(get_top_comments(api_key, v["video_id"], max_comments))
+
+    # Write to S3 (timestamped keys)
+    ts = time.strftime("%Y%m%dT%H%M%S")
+    base = f"{prefix}/{ts}_{query.replace(' ','_')}"
+
+    put_s3_json(bucket, f"{base}_videos.json", {"query": query, "videos": videos})
+    put_s3_csv(bucket,  f"{base}_videos.csv",  videos)
+    put_s3_json(bucket, f"{base}_comments.json", {"query": query, "comments": all_comments})
+    put_s3_csv(bucket,  f"{base}_comments.csv",  all_comments)
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "query": query,
+            "videos_written": len(videos),
+            "comments_written": len(all_comments),
+            "s3_prefix": f"s3://{bucket}/{prefix}/"
+        })
+    }
